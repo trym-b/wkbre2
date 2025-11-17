@@ -16,7 +16,7 @@ headersInterface = interface/ServerDebugger.h interface/ClientDebugger.h interfa
 defs = -Dstrcpy_s=strcpy -D_stricmp=strcasecmp -Dsprintf_s=sprintf -Dstrcmpi=strcasecmp
 libs = -lenet -pthread -lGLEW -lGLU -lGL -lopenal -lmpg123 -lbz2 `sdl2-config --libs`
 cflags = -O3
-cppflags = -std=c++17 -I../inc -O3 -w `sdl2-config --cflags`
+cppflags = -std=c++17 -I../inc/stb -I../inc -O3 -w `sdl2-config --cflags`
 
 all: wkbre2
 
