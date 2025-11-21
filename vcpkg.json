@@ -1,8 +1,28 @@
 {
   "dependencies": [
+    {
+      "name": "bzip2",
+      "platform": "windows"
+    },
+    {
+      "name": "enet",
+      "platform": "windows"
+    },
     "glew",
     "lua",
     "mpg123",
+    {
+      "name": "nlohmann-json",
+      "platform": "windows"
+    },
+    {
+      "name": "openal-soft",
+      "platform": "windows"
+    },
+    {
+      "name": "sdl2",
+      "platform": "windows"
+    },
     "sol2",
     "stb"
   ]

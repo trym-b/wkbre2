@@ -18,3 +18,20 @@ jobs:
         run:
           uv run python continuous-integration/build.py
             --compiler "${{ matrix.compiler }}"
+            --platform ubuntu-24.04
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        compiler: ["msvc",]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - name: Install dependencies
+        run: ./continuous-integration/windows/setup.cmd
+      - name: "Build with ${{ matrix.compiler }}"
+        run:
+          python continuous-integration/build.py
+            --compiler "${{ matrix.compiler }}"
+            --platform windows

@@ -12,7 +12,16 @@ class _Compiler:
     tool_path: Path
 
 
-_SUPPORTED_COMPILERS = (_Compiler(name="gcc", tool_path="g++"),)
+@dataclass
+class _Platform:
+    name: str
+
+
+_SUPPORTED_COMPILERS = (
+    _Compiler(name="gcc", tool_path="g++"),
+    _Compiler(name="msvc", tool_path="msvc"),
+)
+_SUPPORTED_PLATFORMS = (_Platform(name="ubuntu-24.04"), _Platform(name="windows"))
 
 
 def _repo_root() -> Path:
@@ -26,21 +35,37 @@ def _select_compiler_from_string(string: str) -> _Compiler:
     raise ValueError(f"No compiler name matches: '{string}'")
 
 
-def _args() -> _Compiler:
+def _select_platform_from_string(string: str) -> _Platform:
+    for platform in _SUPPORTED_PLATFORMS:
+        if platform.name == string:
+            return platform
+    raise ValueError(f"No platform name matches: '{string}'")
+
+
+def _args() -> tuple[_Compiler, _Platform]:
     parser = ArgumentParser()
     parser.add_argument(
         "--compiler",
         choices=[compiler.name for compiler in _SUPPORTED_COMPILERS],
         required=True,
     )
+    parser.add_argument(
+        "--platform",
+        choices=[platform.name for platform in _SUPPORTED_PLATFORMS],
+        required=True,
+    )
     arguments = parser.parse_args()
-    return _select_compiler_from_string(arguments.compiler)
+    compiler = _select_compiler_from_string(arguments.compiler)
+    platform = _select_platform_from_string(arguments.platform)
+    return (compiler, platform)
 
 
 def _main() -> None:
-    selected_compiler = _args()
+    selected_compiler, selected_platform = _args()
 
-    build_directory = _repo_root() / "build" / "ubuntu-24.04" / selected_compiler.name
+    build_directory = (
+        _repo_root() / "build" / selected_platform.name / selected_compiler.name
+    )
 
     environment = environ.copy()
     vcpkg_root = _repo_root() / "build/3rdParty/vcpkg/"
@@ -48,7 +73,7 @@ def _main() -> None:
 
     cmake_configure_command = (
         "cmake"
-        " --preset=default"
+        f" --preset={selected_platform.name}"
         f' -B "{build_directory}"'
         f" -DCMAKE_CXX_COMPILER={selected_compiler.tool_path}"
     )
