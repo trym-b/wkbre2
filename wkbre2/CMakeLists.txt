@@ -30,6 +30,8 @@ if(${USE_DISCORD})
   add_compile_definitions(HAS_DISCORD)
 endif()
 
+add_subdirectory(util)
+
 # Ajoutez une source à l'exécutable de ce projet.
 add_executable (wkbre2
   "AIController.cpp"
@@ -181,15 +183,6 @@ add_executable (wkbre2
   "Trajectory.h"
   "TrnTextureDb.cpp"
   "TrnTextureDb.h"
-  "util/DynArray.h"
-  "util/GSFileParser.cpp"
-  "util/GSFileParser.h"
-  "util/IndexedStringList.h"
-  "util/TagDict.h"
-  "util/util.cpp"
-  "util/util.h"
-  "util/vecmat.cpp"
-  "util/vecmat.h"
   "WavDocument.cpp"
   "WavDocument.h"
   "window.cpp"
@@ -199,6 +192,7 @@ add_executable (wkbre2
 )
 target_link_libraries (wkbre2
   imgui
+  util
   SDL2::SDL2
   ${ENET_LIBRARY}
   BZip2::BZip2
