@@ -35,3 +35,13 @@ jobs:
           python continuous-integration/build.py
             --compiler "${{ matrix.compiler }}"
             --platform windows
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - name: Install dependencies
+        run: ./continuous-integration/code-analysis/setup.sh
+      - name: Check formatting
+        run: uv run continuous-integration/code-analysis/format.py --check
