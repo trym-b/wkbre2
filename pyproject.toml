@@ -1,0 +1,8 @@
+[project]
+name = "wkre2"
+version = "0.1.0"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "gersemi>=0.23.2",
+]
