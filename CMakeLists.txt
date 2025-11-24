@@ -1,9 +1,9 @@
 # CMakeList.txt : fichier projet CMake de niveau supérieur, effectuez une configuration globale
 # et incluez les sous-projets ici.
 #
-cmake_minimum_required (VERSION 3.19)
+cmake_minimum_required(VERSION 3.19)
 
-project ("wkbre2")
+project("wkbre2")
 
 # Incluez les sous-projets.
-add_subdirectory ("wkbre2")
+add_subdirectory("wkbre2")

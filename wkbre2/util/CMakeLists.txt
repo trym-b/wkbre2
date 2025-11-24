@@ -1,13 +1,14 @@
-add_library(util
-  BinaryReader.h
-  DynArray.h
-  GSFileParser.cpp
-  GSFileParser.h
-  IndexedStringList.h
-  StriCompare.h
-  TagDict.h
-  util.cpp
-  util.h
-  vecmat.cpp
-  vecmat.h
+add_library(
+    util
+    BinaryReader.h
+    DynArray.h
+    GSFileParser.cpp
+    GSFileParser.h
+    IndexedStringList.h
+    StriCompare.h
+    TagDict.h
+    util.cpp
+    util.h
+    vecmat.cpp
+    vecmat.h
 )
