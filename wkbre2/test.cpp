@@ -793,10 +793,9 @@ void Test_Pathfinding()
 	//	{1,1,0,1,1,1,1,1,1,1},
 	//	{1,1,1,1,1,1,1,1,1,1}
 	//};
-	static constexpr char map[HEIGHT][WIDTH] = {};
 	auto pred = [](PFPos pos) -> bool {
 		if (pos.x >= 0 && pos.x < WIDTH && pos.z >= 0 && pos.z < HEIGHT)
-			return map[pos.z][pos.x] != 0;
+			return false; //return map[pos.z][pos.x] != 0;
 		return true;
 	};
 	auto vec = DoPathfinding({ 2,2 }, { 800,900 }, pred, ManhattanDiagHeuristic);
