@@ -158,45 +158,82 @@ namespace Pathfinding {
         }
     }
 
-    // Checks if the segment from "start" to "end" intersects with a blocked tile
-    template<typename Predicate> std::optional<PFPos> SegmentTraversal(float start_x, float start_z, float end_x, float end_z, Predicate pred) {
-        // TODO: Fix BUG where end tile not found on short distances
-        const int end_tile_x = (int)end_x, end_tile_z = (int)end_z;
-        const float dx = end_x - start_x, dz = end_z - start_z;
-        const bool right = dx >= 0, down = dz >= 0;
+    // Walks through tiles from a starting point in a direction
+    // NOTE: Here, float values are in tile unit: 1 tile length = 1.0 (not 5.0)
+    class TileWalker
+    {
+    private:
+        const float start_x, start_z;
+        const float dir_x, dir_z;
 
-        float cur_x = start_x, cur_z = start_z;
-        int tile_x = (int)cur_x, tile_z = (int)cur_z;
-        if (pred({ tile_x, tile_z }))
-            return PFPos{ tile_x, tile_z };
+        float cur_x, cur_z;
+        int tile_x, tile_z;
 
-        while ((tile_x != end_tile_x) || (tile_z != end_tile_z)) {
-            //printf("curpos = (%f, %f)\n", cur_x, cur_z);
+    public:
+        TileWalker(float start_x, float start_z, float dir_x, float dir_z)
+            : start_x(start_x), start_z(start_z), dir_x(dir_x), dir_z(dir_z), cur_x(start_x), cur_z(start_z), tile_x((int)start_x), tile_z((int)start_z)
+        {
+            if (cur_x == (float)tile_x)
+                cur_x = std::nextafter(cur_x, cur_x + 1.0f);
+            if (cur_z == (float)tile_z)
+                cur_z = std::nextafter(cur_z, cur_z + 1.0f);
+        }
 
+        PFPos next()
+        {
             constexpr float finf = std::numeric_limits<float>::infinity();
+            const bool right = dir_x >= 0, down = dir_z >= 0;
+            
             float nx1 = finf, nz1 = finf, nx2 = finf, nz2 = finf;
-            if (dx != 0.0f) {
+            int tx1, tz1, tx2, tz2;
+            if (dir_x != 0.0f) {
                 nx1 = right ? std::floor(cur_x + 1.0f) : std::ceil(cur_x - 1.0f);
-                nz1 = start_z + (nx1 - start_x) * dz / dx;
+                nz1 = start_z + (nx1 - start_x) * dir_z / dir_x;
+                tx1 = (int)nx1 - (right ? 0 : 1);
+                tz1 = (int)nz1;
             }
-            if (dz != 0.0f) {
+            if (dir_z != 0.0f) {
                 nz2 = down ? std::floor(cur_z + 1.0f) : std::ceil(cur_z - 1.0f);
-                nx2 = start_x + (nz2 - start_z) * dx / dz;
+                nx2 = start_x + (nz2 - start_z) * dir_x / dir_z;
+                tx2 = (int)nx2;
+                tz2 = (int)nz2 - (down ? 0 : 1);
             }
 
             if (std::abs(nx1 - start_x) + std::abs(nz1 - start_z) < std::abs(nx2 - start_x) + std::abs(nz2 - start_z)) {
                 cur_x = nx1;
                 cur_z = nz1;
+                tile_x = tx1;
+                tile_z = tz1;
             }
             else {
                 cur_x = nx2;
                 cur_z = nz2;
+                tile_x = tx2;
+                tile_z = tz2;
             }
-            tile_x = (int)cur_x, tile_z = (int)cur_z;
-            if (pred({ tile_x, tile_z }))
-                return PFPos{ tile_x, tile_z };
+
+            return { tile_x, tile_z };
         }
-        //printf("FALSE! curpos = (%f, %f)\n", cur_x, cur_z);
+    };
+
+    // Checks if the segment from "start" to "end" intersects with a blocked tile.
+    // Returns the first blocked tile that intersects, or nullopt if none found.
+    // NOTE: Here, float values are in tile unit: 1 tile length = 1.0 (not 5.0)
+    template<typename Predicate> std::optional<PFPos> SegmentTraversal(float start_x, float start_z, float end_x, float end_z, Predicate pred) {
+        const PFPos endTile = PFPos{ (int)end_x, (int)end_z };
+        const float dir_x = end_x - start_x, dir_z = end_z - start_z;
+
+        PFPos currentTile = PFPos{ (int)start_x, (int)start_z };
+        if (pred(currentTile))
+            return currentTile;
+
+        TileWalker walker(start_x, start_z, dir_x, dir_z);
+
+        while (currentTile != endTile) {
+            currentTile = walker.next();
+            if (pred(currentTile))
+                return currentTile;
+        }
         return std::nullopt;
     }
 };

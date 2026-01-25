@@ -896,28 +896,51 @@ void Test_ParticleSystem()
 void Test_PFRayTraversal() {
 	using namespace Pathfinding;
 	static constexpr int WIDTH = 10, HEIGHT = 10;
-	static constexpr char map[HEIGHT][WIDTH] = {
-		{1,1,1,1,1,1,1,1,1,1},
-		{1,0,0,0,0,0,0,0,0,1},
-		{1,0,0,0,0,0,0,0,0,1},
-		{1,0,0,0,0,0,0,0,0,1},
-		{1,0,0,0,0,0,0,0,0,1},
-		{1,0,0,0,0,0,0,0,0,1},
-		{1,0,0,0,0,0,0,0,0,1},
-		{1,0,0,0,0,0,0,0,0,1},
-		{1,0,0,0,0,0,0,0,0,1},
-		{1,1,1,1,1,1,1,1,1,1}
+	static constexpr std::array<char, WIDTH*HEIGHT> map = {
+		1,1,1,1,1,1,1,1,1,1,
+		1,0,0,0,0,0,0,0,0,1,
+		1,0,0,0,0,0,0,0,0,1,
+		1,0,0,0,0,0,0,0,0,1,
+		1,0,0,0,0,0,0,0,0,1,
+		1,0,0,0,0,0,0,0,0,1,
+		1,0,0,0,0,0,0,0,0,1,
+		1,0,0,0,0,0,0,0,0,1,
+		1,0,0,0,0,0,0,0,0,1,
+		1,1,1,1,1,1,1,1,1,1
 	};
 	auto pred = [](PFPos pos) -> bool {
 		if (pos.x >= 0 && pos.x < WIDTH && pos.z >= 0 && pos.z < HEIGHT)
-			return map[pos.z][pos.x] != 0;
+			return map[pos.z * WIDTH + pos.x] != 0;
 		return true;
 	};
-	float start[2] = { 2.0f, 2.0f }, end[2] = { 2.0f, 3.0f };
-	auto res = SegmentTraversal(start[0], start[1], end[0], end[1], pred);
-	printf("Result: %s, (%i, %i)\n", res ? "true" : "false", res ? res->x : 0, res ? res->z : 0);
-	res = SegmentTraversal(end[0], end[1], start[0], start[1], pred);
-	printf("Result: %s, (%i, %i)\n", res ? "true" : "false", res ? res->x : 0, res ? res->z : 0);
+	
+	//float start[2] = { 2.0f, 2.0f }, end[2] = { 2.0f, 3.0f };
+	float start[2] = { 7.5f, 1.5f }, end[2] = { 3.5f, 3.5f };
+
+	//auto res = SegmentTraversal(start[0], start[1], end[0], end[1], pred);
+	//printf("Result: %s, (%i, %i)\n", res ? "true" : "false", res ? res->x : 0, res ? res->z : 0);
+
+	for (int i = 0; i < 2; ++i) {
+		auto annotatedMap = map;
+		annotatedMap[(int)start[1] * WIDTH + (int)start[0]] = 2;
+		const PFPos endTile = { (int)end[0], (int)end[1] };
+		PFPos curTile = { (int)start[0], (int)start[1] };
+		TileWalker walker(start[0], start[1], end[0] - start[0], end[1] - start[1]);
+		while (curTile != endTile) {
+			curTile = walker.next();
+			annotatedMap[(int)curTile.z * WIDTH + (int)curTile.x] = 3;
+		}
+
+		printf("===== Start (%f,%f) -> End (%f,%f)\n", start[0], start[1], end[0], end[1]);
+		for (int y = 0; y < HEIGHT; ++y) {
+			for (int x = 0; x < WIDTH; ++x) {
+				printf("%i", (int)annotatedMap[y * WIDTH + x]);
+			}
+			printf("\n");
+		}
+
+		std::swap(start, end);
+	}
 	getchar();
 }
 
