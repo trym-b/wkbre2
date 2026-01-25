@@ -16,6 +16,7 @@
 #include "position.h"
 #include "ScriptContext.h"
 #include "../terrain.h"
+#include "../Pathfinding.h"
 
 namespace {
 	float RandomFromZeroToOne() { return (float)(rand() & 0xFFFF) / 32768.0f; }
@@ -375,9 +376,41 @@ struct ValueHasDirectLineOfSightTo : ValueDeterminer {
 	std::unique_ptr<ObjectFinder> finder1;
 	std::unique_ptr<PositionDeterminer> pos;
 	std::unique_ptr<ObjectFinder> finder2;
+
 	virtual float eval(ScriptContext* ctx) override {
-		// TODO
-		return 1.0f;
+		auto* targetObj = finder2->getFirst(ctx);
+		if (!targetObj)
+			return 0.0f;
+
+		Vector3 startPos = pos->eval(ctx).position;
+		Vector3 endPos = targetObj->position;
+		Vector3 dir = (endPos - startPos).normal();
+		
+		auto* terrain = ctx->gameState->terrain;
+		auto [trnWidth, trnHeight] = terrain->getNumPlayableTiles();
+
+		auto pred = [&](Pathfinding::PFPos pos) {
+			if (!(pos.x >= 0 && pos.x < trnWidth && pos.z >= 0 && pos.z < trnHeight))
+				return true;
+
+			const auto& tile = ctx->gameState->tiles[pos.z * trnWidth + pos.x];
+			if (tile.building.getFrom(ctx->gameState) && !tile.buildingPassable)
+				return true;
+
+			const float h1 = terrain->getVertex(pos.x + terrain->edge, pos.z + terrain->edge);
+			const float h2 = terrain->getVertex(pos.x + terrain->edge + 1, pos.z + terrain->edge);
+			const float h3 = terrain->getVertex(pos.x + terrain->edge + 1, pos.z + terrain->edge + 1);
+			const float h4 = terrain->getVertex(pos.x + terrain->edge, pos.z + terrain->edge + 1);
+			const float tileHeight = std::max({ h1,h2,h3,h4 });
+			Vector3 testPos = startPos + dir * dir.dot(Vector3(pos.x * 5.0f + 2.5f, tileHeight, pos.z * 5.0f + 2.5f));
+			if (testPos.y < tileHeight)
+				return true;
+
+			return false;
+			};
+
+		auto intersectingTile = Pathfinding::SegmentTraversal(startPos.x / 5.0f, startPos.z / 5.0f, endPos.x / 5.0f, endPos.z / 5.0f, pred);
+		return !intersectingTile.has_value();
 	}
 	virtual void parse(GSFileParser& gsf, const GameSet& gs) override {
 		finder1.reset(ReadFinder(gsf, gs));
