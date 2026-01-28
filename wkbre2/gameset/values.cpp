@@ -378,6 +378,7 @@ struct ValueHasDirectLineOfSightTo : ValueDeterminer {
 	std::unique_ptr<ObjectFinder> finder2;
 
 	virtual float eval(ScriptContext* ctx) override {
+		auto* sourceObj = finder1->getFirst(ctx);
 		auto* targetObj = finder2->getFirst(ctx);
 		if (!targetObj)
 			return 0.0f;
@@ -394,7 +395,8 @@ struct ValueHasDirectLineOfSightTo : ValueDeterminer {
 				return true;
 
 			const auto& tile = ctx->gameState->tiles[pos.z * trnWidth + pos.x];
-			if (tile.building.getFrom(ctx->gameState) && !tile.buildingPassable)
+			const auto* owningBuilding = tile.building.getFrom(ctx->gameState);
+			if (owningBuilding && owningBuilding != sourceObj && owningBuilding != targetObj && !tile.buildingPassable)
 				return true;
 
 			const float h1 = terrain->getVertex(pos.x + terrain->edge, pos.z + terrain->edge);
