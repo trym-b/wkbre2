@@ -383,7 +383,7 @@ struct ValueHasDirectLineOfSightTo : ValueDeterminer {
 			return 0.0f;
 
 		Vector3 startPos = pos->eval(ctx).position;
-		Vector3 endPos = targetObj->position;
+		Vector3 endPos = targetObj->position + Vector3(0, 2, 0);
 		Vector3 dir = (endPos - startPos).normal();
 		
 		auto* terrain = ctx->gameState->terrain;
@@ -401,8 +401,8 @@ struct ValueHasDirectLineOfSightTo : ValueDeterminer {
 			const float h2 = terrain->getVertex(pos.x + terrain->edge + 1, pos.z + terrain->edge);
 			const float h3 = terrain->getVertex(pos.x + terrain->edge + 1, pos.z + terrain->edge + 1);
 			const float h4 = terrain->getVertex(pos.x + terrain->edge, pos.z + terrain->edge + 1);
-			const float tileHeight = std::max({ h1,h2,h3,h4 });
-			Vector3 testPos = startPos + dir * dir.dot(Vector3(pos.x * 5.0f + 2.5f, tileHeight, pos.z * 5.0f + 2.5f));
+			const float tileHeight = std::min({ h1,h2,h3,h4 });
+			Vector3 testPos = startPos + dir * dir.dot(Vector3(pos.x * 5.0f + 2.5f, tileHeight, pos.z * 5.0f + 2.5f) - startPos);
 			if (testPos.y < tileHeight)
 				return true;
 
